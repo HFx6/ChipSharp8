@@ -9,7 +9,7 @@ using System.Threading;
 using System.Timers;
 
 
-namespace Sharp8
+namespace ChipSharp8
 {
     public class Chip
     {

@@ -9,7 +9,7 @@ using ImGuiNET;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 
-namespace Sharp8
+namespace ChipSharp8
 {
     /// <summary>
     /// A modified version of Veldrid.ImGui's ImGuiRenderer.
