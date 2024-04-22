@@ -108,6 +108,19 @@ namespace ChipSharp8
             I = 0;
             sp = 0;
             gfx = new byte[64 * 32];
+
+            //opcode = 0;
+            //memory = new byte[4096];
+            //V = new byte[16];
+            //I = 0;
+            //pc = RomStart;
+            //gfx = new byte[64 * 32];
+            //delay_timer = 0;
+            //sound_timer = 0;
+            //Counter = 0;
+            //stack = new ushort[12];
+            //sp = 0;
+            //Keys = new bool[16];
         }
 
         public void KeyUp(byte key)

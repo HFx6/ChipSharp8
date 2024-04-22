@@ -21,8 +21,10 @@ namespace ChipSharp8
         private static Chip _chip;
         private static KeyPad _keyPad;
         private static Vector3 _clearColor = new Vector3(0.45f, 0.55f, 0.6f);
-        private static bool _showAnotherWindow = false;
-        private static bool _showMemoryEditor = false;
+        private static string[] fileArray = Directory.GetFiles(@"./roms/", "*.ch8");
+
+        private static bool isPaused = false;
+        private static string selectedRom = fileArray[0];
 
         static void Main(string[] args)
         {
@@ -43,9 +45,11 @@ namespace ChipSharp8
 
             var stopwatch = Stopwatch.StartNew();
             float deltaTime = 0f;
-            _chip = Chip.BootChip(@"./roms/si.ch8");
+            _chip = Chip.BootChip(selectedRom);
             _keyPad = new KeyPad(_chip);
-            // Main application loop
+            // loop through all the files in the roms folder
+
+
             while (_window.Exists)
             {
                 deltaTime = stopwatch.ElapsedTicks / (float)Stopwatch.Frequency;
@@ -56,7 +60,10 @@ namespace ChipSharp8
 
                 ChipDisplay();
                 _keyPad.Render();
-                _chip.EmulateCycle();
+                if (!isPaused)
+                {
+                    _chip.EmulateCycle();
+                }
                 _cl.Begin();
                 _cl.SetFramebuffer(_gd.MainSwapchain.Framebuffer);
                 _cl.ClearColorTarget(0, new RgbaFloat(_clearColor.X, _clearColor.Y, _clearColor.Z, 1f));
@@ -88,24 +95,56 @@ namespace ChipSharp8
 
                     }
 
-                
+
                 Texture texture = _gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
                     64, 32, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
 
-               
+
                 _gd.UpdateTexture(texture, RGBAdata, 0, 0, 0, 64, 32, 1, 0, 0);
 
-                ImGui.Begin("Chip-8", ref _showAnotherWindow);
+                ImGui.Begin("Chip-8");
 
-               
-                nint ImgPtr = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, texture); 
+
+                nint ImgPtr = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, texture);
                 ImGui.Image(ImgPtr, new System.Numerics.Vector2(640, 320));
 
                 ImGui.End();
 
             }
             {
-                ImGui.Begin("Registers", ref _showMemoryEditor);
+                ImGui.Begin("Controls");
+                // reset the chip
+                if (ImGui.Button("Reset"))
+                {
+                    _chip.Reset();
+                }
+                // play/pause the emulation cycle
+                if (ImGui.Button(isPaused ? "Play" : "Pause"))
+                {
+                    isPaused = !isPaused;
+                }
+                // select a rom from the roms folder dropdown with button to load
+                if (ImGui.BeginCombo("Select ROM", selectedRom))
+                {
+                    foreach (var file in fileArray)
+                    {
+                        bool isSelected = selectedRom == file;
+                        if (ImGui.Selectable(file, isSelected))
+                        {
+                            selectedRom = file;
+                            _chip = Chip.BootChip(selectedRom);
+                        }
+                        if (isSelected)
+                        {
+                            ImGui.SetItemDefaultFocus();
+                        }
+                    }
+                    ImGui.EndCombo();
+                }
+
+            }
+            {
+                ImGui.Begin("Registers");
 
                 ImGui.Columns(2, "mycolumns"); // 2-ways, with border
                 ImGui.Separator();
