@@ -1,9 +1,5 @@
 ﻿using ImGuiNET;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Numerics;
 
 namespace ChipSharp8
 {
@@ -24,12 +20,12 @@ namespace ChipSharp8
             int[] keyValues = new int[] { 0x1, 0x2, 0x3, 0xC, 0x4, 0x5, 0x6, 0xD, 0x7, 0x8, 0x9, 0xE, 0xA, 0x0, 0xB, 0xF };
 
             ImGui.Begin("Keypad", ref _showKeyPad);
-            ImGui.Columns(4, "mycolumns"); 
+            ImGui.Columns(4, "mycolumns");
             ImGui.Separator();
-
+            float columnWidth = ImGui.GetColumnWidth();
             for (int i = 0; i < keys.Length; i++)
             {
-                ImGui.Button(keys[i]);
+                ImGui.Button(keys[i], new Vector2(columnWidth, 0));
                 if (ImGui.IsItemActive())
                 {
                     _isKeyPadPressed = true;
@@ -52,7 +48,6 @@ namespace ChipSharp8
             }
 
             ImGui.Columns(1);
-            ImGui.Separator();
             ImGui.End();
 
             {
