@@ -19,13 +19,13 @@ namespace ChipSharp8
         private static ImGuiController _controller;
 
         private static Chip _chip;
+        private static KeyPad _keyPad;
         private static Vector3 _clearColor = new Vector3(0.45f, 0.55f, 0.6f);
         private static bool _showAnotherWindow = false;
         private static bool _showMemoryEditor = false;
 
         static void Main(string[] args)
         {
-            // Create window, GraphicsDevice, and all resources necessary for the demo.
             VeldridStartup.CreateWindowAndGraphicsDevice(
                 new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "Chip#8"),
                 new GraphicsDeviceOptions(true, null, true, ResourceBindingModel.Improved, true, true),
@@ -44,6 +44,7 @@ namespace ChipSharp8
             var stopwatch = Stopwatch.StartNew();
             float deltaTime = 0f;
             _chip = Chip.BootChip(@"./roms/si.ch8");
+            _keyPad = new KeyPad(_chip);
             // Main application loop
             while (_window.Exists)
             {
@@ -51,9 +52,10 @@ namespace ChipSharp8
                 stopwatch.Restart();
                 InputSnapshot snapshot = _window.PumpEvents();
                 if (!_window.Exists) { break; }
-                _controller.Update(deltaTime, snapshot); // Feed the input events to our ImGui controller, which passes them through to ImGui.
+                _controller.Update(deltaTime, snapshot);
 
                 ChipDisplay();
+                _keyPad.Render();
                 _chip.EmulateCycle();
                 _cl.Begin();
                 _cl.SetFramebuffer(_gd.MainSwapchain.Framebuffer);
@@ -64,7 +66,6 @@ namespace ChipSharp8
                 _gd.SwapBuffers(_gd.MainSwapchain);
             }
 
-            // Clean up Veldrid resources
             _gd.WaitForIdle();
             _controller.Dispose();
             _cl.Dispose();
@@ -73,138 +74,6 @@ namespace ChipSharp8
 
         private static unsafe void ChipDisplay()
         {
-            {
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey._0)))
-                {
-                    _chip.KeyDown(0x0);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey._1)))
-                {
-                    _chip.KeyDown(0x1);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey._2)))
-                {
-                    _chip.KeyDown(0x2);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey._3)))
-                {
-                    _chip.KeyDown(0x3);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey._4)))
-                {
-                    _chip.KeyDown(0x4);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey._5)))
-                {
-                    _chip.KeyDown(0x5);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey._6)))
-                {
-                    _chip.KeyDown(0x6);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey._7)))
-                {
-                    _chip.KeyDown(0x7);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey._8)))
-                {
-                    _chip.KeyDown(0x8);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey._9)))
-                {
-                    _chip.KeyDown(0x9);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey.A)))
-                {
-                    _chip.KeyDown(0xA);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey.B)))
-                {
-                    _chip.KeyDown(0xB);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey.C)))
-                {
-                    _chip.KeyDown(0xC);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey.D)))
-                {
-                    _chip.KeyDown(0xD);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey.E)))
-                {
-                    _chip.KeyDown(0xE);
-                }
-                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey.F)))
-                {
-                    _chip.KeyDown(0xF);
-                }
-
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey._0)))
-                {
-                    _chip.KeyUp(0x0);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey._1)))
-                {
-                    _chip.KeyUp(0x1);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey._2)))
-                {
-                    _chip.KeyUp(0x2);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey._3)))
-                {
-                    _chip.KeyUp(0x3);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey._4)))
-                {
-                    _chip.KeyUp(0x4);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey._5)))
-                {
-                    _chip.KeyUp(0x5);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey._6)))
-                {
-                    _chip.KeyUp(0x6);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey._7)))
-                {
-                    _chip.KeyUp(0x7);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey._8)))
-                {
-                    _chip.KeyUp(0x8);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey._9)))
-                {
-                    _chip.KeyUp(0x9);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey.A)))
-                {
-                    _chip.KeyUp(0xA);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey.B)))
-                {
-                    _chip.KeyUp(0xB);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey.C)))
-                {
-                    _chip.KeyUp(0xC);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey.D)))
-                {
-                    _chip.KeyUp(0xD);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey.E)))
-                {
-                    _chip.KeyUp(0xE);
-                }
-                if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey.F)))
-                {
-                    _chip.KeyUp(0xF);
-                }
-
-            }
 
             {
                 RgbaByte[] RGBAdata = new RgbaByte[64 * 32];
@@ -219,17 +88,17 @@ namespace ChipSharp8
 
                     }
 
-                // Create a texture
+                
                 Texture texture = _gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
                     64, 32, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
 
-                // Update the texture
+               
                 _gd.UpdateTexture(texture, RGBAdata, 0, 0, 0, 64, 32, 1, 0, 0);
 
                 ImGui.Begin("Chip-8", ref _showAnotherWindow);
 
-                // Render the texture
-                nint ImgPtr = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, texture); //This returns the intPtr need for Imgui.Image()
+               
+                nint ImgPtr = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, texture); 
                 ImGui.Image(ImgPtr, new System.Numerics.Vector2(640, 320));
 
                 ImGui.End();

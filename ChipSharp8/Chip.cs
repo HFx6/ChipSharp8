@@ -32,8 +32,6 @@ namespace ChipSharp8
 
         const ushort RomStart = 0x200;
 
-        // private IWindow Window;
-
         private byte[] fonts = {
             0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
             0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -238,6 +236,7 @@ namespace ChipSharp8
                     OP_FX65(X);
                     break;
                 default:
+                    // taken from demo
                     throw new InvalidOperationException($"error: Invalid OpCode: {opcode:X4} @ PC = 0x{pc:X3}");
             }
 
@@ -257,7 +256,6 @@ namespace ChipSharp8
             if (delay_timer > 0) delay_timer--;
             if (sound_timer > 0)
             {
-                // Window?.Beep();
                 sound_timer--;
             }
         }
@@ -413,7 +411,7 @@ namespace ChipSharp8
             {
                 pc += 2;
             }
-        }  
+        }
         private void OP_EXA1(byte X)
         {
             if (!Keys[V[X]])
