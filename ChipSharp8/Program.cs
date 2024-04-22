@@ -1,10 +1,12 @@
 ﻿using ImGuiNET;
 using System.Diagnostics;
 using System.Numerics;
+using System.IO;
 using System.Reflection.Emit;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
+using System.Reflection;
 
 
 namespace ChipSharp8
@@ -41,8 +43,7 @@ namespace ChipSharp8
 
             var stopwatch = Stopwatch.StartNew();
             float deltaTime = 0f;
-
-            _chip = Chip.BootChip("C:\\Users\\Hayden\\Documents\\github\\Projects\\imchip8\\imchip8\\roms\\si.ch8");
+            _chip = Chip.BootChip(@"./roms/si.ch8");
             // Main application loop
             while (_window.Exists)
             {
