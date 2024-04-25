@@ -86,94 +86,94 @@ namespace ChipSharp8
                 (byte)(Math.Clamp(color.X, 0.0f, 1.0f) * 255),
                 (byte)(Math.Clamp(color.Y, 0.0f, 1.0f) * 255),
                 (byte)(Math.Clamp(color.Z, 0.0f, 1.0f) * 255),
-                255 
+                255
             );
         }
 
         private static unsafe void ChipDisplay()
         {
-            {
-                ImGui.Begin("Background");
-                ImGui.ColorPicker3("ColorPicker3", ref BgColor);
-                ImGui.End();
-            }
-            {
-                ImGui.Begin("Foreground");
-                ImGui.ColorPicker3("ColorPicker3", ref FgColor);
-                ImGui.End();
-            }
-            {
-                Console.WriteLine(BgColor);
-                RgbaByte[] RGBAdata = new RgbaByte[64 * 32];
 
-                RgbaByte bgColorRgba = ConvertToRgbaByte(BgColor);
-                RgbaByte fgColorRgba = ConvertToRgbaByte(FgColor);
-                for (int i = 0; i < RGBAdata.Length; ++i)
+            ImGui.Begin("Background");
+            ImGui.ColorPicker3("ColorPicker3", ref BgColor);
+            ImGui.End();
+
+
+            ImGui.Begin("Foreground");
+            ImGui.ColorPicker3("ColorPicker3", ref FgColor);
+            ImGui.End();
+
+
+            Console.WriteLine(BgColor);
+            RgbaByte[] RGBAdata = new RgbaByte[64 * 32];
+
+            RgbaByte bgColorRgba = ConvertToRgbaByte(BgColor);
+            RgbaByte fgColorRgba = ConvertToRgbaByte(FgColor);
+            for (int i = 0; i < RGBAdata.Length; ++i)
+            {
+                if (_chip.gfx[i] == 0)
                 {
-                    if (_chip.gfx[i] == 0)
+                    RGBAdata[i] = bgColorRgba;
+                }
+                else
+                {
+                    RGBAdata[i] = fgColorRgba;
+                }
+            }
+
+            texture = _gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
+                            64, 32, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
+
+            _gd.UpdateTexture(texture, RGBAdata, 0, 0, 0, 64, 32, 1, 0, 0);
+
+            ImGui.Begin("Chip-8");
+
+            nint ImgPtr = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, texture);
+            ImGui.Image(ImgPtr, new System.Numerics.Vector2(640, 320));
+
+            ImGui.End();
+
+
+
+
+            ImGui.Begin("Controls");
+            if (ImGui.Button("Reset"))
+            {
+                _chip.Reset(selectedRom);
+                _keyPad = new KeyPad(_chip);
+            }
+            if (ImGui.Button(isPaused ? "Play" : "Pause"))
+            {
+                isPaused = !isPaused;
+            }
+            if (ImGui.BeginCombo("Select ROM", selectedRom))
+            {
+                foreach (var file in fileArray)
+                {
+                    bool isSelected = selectedRom == file;
+                    if (ImGui.Selectable(file, isSelected))
                     {
-                        RGBAdata[i] = bgColorRgba;
+                        selectedRom = file;
+                        _chip = Chip.BootChip(selectedRom);
                     }
-                    else
+                    if (isSelected)
                     {
-                        RGBAdata[i] = fgColorRgba;
+                        ImGui.SetItemDefaultFocus();
                     }
                 }
-
-                texture = _gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
-                                64, 32, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
-
-                _gd.UpdateTexture(texture, RGBAdata, 0, 0, 0, 64, 32, 1, 0, 0);
-
-                ImGui.Begin("Chip-8");
-
-                nint ImgPtr = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, texture);
-                ImGui.Image(ImgPtr, new System.Numerics.Vector2(640, 320));
-
-                ImGui.End();
-
-
+                ImGui.EndCombo();
             }
-            {
-                ImGui.Begin("Controls");
-                if (ImGui.Button("Reset"))
-                {
-                    _chip.Reset(selectedRom);
-                    _keyPad = new KeyPad(_chip);
-                }
-                if (ImGui.Button(isPaused ? "Play" : "Pause"))
-                {
-                    isPaused = !isPaused;
-                }
-                if (ImGui.BeginCombo("Select ROM", selectedRom))
-                {
-                    foreach (var file in fileArray)
-                    {
-                        bool isSelected = selectedRom == file;
-                        if (ImGui.Selectable(file, isSelected))
-                        {
-                            selectedRom = file;
-                            _chip = Chip.BootChip(selectedRom);
-                        }
-                        if (isSelected)
-                        {
-                            ImGui.SetItemDefaultFocus();
-                        }
-                    }
-                    ImGui.EndCombo();
-                }
 
-            }
-            {
-                ImGui.Begin("Registers");
 
-                ImGui.Columns(2, "mycolumns");
-                ImGui.Separator();
-                ImGui.Text("Register"); ImGui.NextColumn();
-                ImGui.Text("Value"); ImGui.NextColumn();
-                ImGui.Separator();
 
-                var registers = new List<(string, string)>
+            ImGui.Begin("Registers");
+
+            ImGui.Columns(2, "mycolumns");
+            ImGui.Separator();
+            ImGui.Text("Register"); ImGui.NextColumn();
+            ImGui.Text("Value"); ImGui.NextColumn();
+            ImGui.Separator();
+
+            var registers = new List<(string, string)>
                     {
                         ("PC", $"0x{_chip.pc:X4}"),
                         ("OpCode", $"0x{_chip.opcode:X4}"),
@@ -183,21 +183,21 @@ namespace ChipSharp8
                         ("SoundTimer", $"{_chip.sound_timer}")
                     };
 
-                foreach (var register in Enumerable.Range(0, 16))
-                {
-                    registers.Add(($"V{register:X}", $"0x{_chip.V[register]:X2}"));
-                }
-
-                foreach (var (register, value) in registers)
-                {
-                    ImGui.Text(register); ImGui.NextColumn();
-                    ImGui.Text(value); ImGui.NextColumn();
-                }
-
-                ImGui.Columns(1);
-                ImGui.Separator();
-                ImGui.End();
+            foreach (var register in Enumerable.Range(0, 16))
+            {
+                registers.Add(($"V{register:X}", $"0x{_chip.V[register]:X2}"));
             }
+
+            foreach (var (register, value) in registers)
+            {
+                ImGui.Text(register); ImGui.NextColumn();
+                ImGui.Text(value); ImGui.NextColumn();
+            }
+
+            ImGui.Columns(1);
+            ImGui.Separator();
+            ImGui.End();
+
         }
     }
 }
