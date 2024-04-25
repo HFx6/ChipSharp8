@@ -70,7 +70,7 @@ namespace ChipSharp8
 
         public static Chip BootChip(string rom)
         {
-            var bytes = File.ReadAllBytes(rom);
+            var bytes = readRomFile(rom);
             Console.WriteLine(rom);
             return BootChip(bytes);
         }
@@ -83,6 +83,12 @@ namespace ChipSharp8
             }
         }
 
+        public static byte[] readRomFile(string rom)
+        {
+            var bytes = File.ReadAllBytes(rom);
+            return bytes;
+        }
+
         public void LoadRomFile(byte[] rom)
         {
             for (int i = 0; i < rom.Length; i++)
@@ -92,25 +98,29 @@ namespace ChipSharp8
 
         }
 
-        public void Reset()
+        public void Reset(string rom)
         {
-            pc = RomStart;
-            I = 0;
-            sp = 0;
-            gfx = new byte[64 * 32];
-
-            //opcode = 0;
-            //memory = new byte[4096];
-            //V = new byte[16];
-            //I = 0;
             //pc = RomStart;
-            //gfx = new byte[64 * 32];
-            //delay_timer = 0;
-            //sound_timer = 0;
-            //Counter = 0;
-            //stack = new ushort[12];
+            //I = 0;
             //sp = 0;
-            //Keys = new bool[16];
+            //gfx = new byte[64 * 32];
+
+
+            opcode = 0;
+            memory = new byte[4096];
+            V = new byte[16];
+            I = 0;
+            pc = RomStart;
+            gfx = new byte[64 * 32];
+            delay_timer = 0;
+            sound_timer = 0;
+            Counter = 0;
+            stack = new ushort[12];
+            sp = 0;
+            Keys = new bool[16];
+
+            var bytes = readRomFile(rom);
+            LoadRomFile(bytes);
         }
 
         public void KeyUp(byte key)

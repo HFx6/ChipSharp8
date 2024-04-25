@@ -5,9 +5,10 @@ namespace ChipSharp8
 {
     internal class KeyPad
     {
-        private Chip _chip;
-        private bool _showKeyPad = false;
-        private static bool _isKeyPadPressed = false;
+        Chip _chip;
+        bool _isKeyPadPressed = false;
+        string[] keys = ["1", "2", "3", "C", "4", "5", "6", "D", "7", "8", "9", "E", "A", "0", "B", "F"];
+        int[] keyValues = [0x1, 0x2, 0x3, 0xC, 0x4, 0x5, 0x6, 0xD, 0x7, 0x8, 0x9, 0xE, 0xA, 0x0, 0xB, 0xF];
 
         public KeyPad(Chip chip)
         {
@@ -16,10 +17,9 @@ namespace ChipSharp8
 
         public void Render()
         {
-            string[] keys = new string[] { "1", "2", "3", "C", "4", "5", "6", "D", "7", "8", "9", "E", "A", "0", "B", "F" };
-            int[] keyValues = new int[] { 0x1, 0x2, 0x3, 0xC, 0x4, 0x5, 0x6, 0xD, 0x7, 0x8, 0x9, 0xE, 0xA, 0x0, 0xB, 0xF };
 
-            ImGui.Begin("Keypad", ref _showKeyPad);
+
+            ImGui.Begin("Keypad");
             ImGui.Columns(4, "mycolumns");
             ImGui.Separator();
             float columnWidth = ImGui.GetColumnWidth();

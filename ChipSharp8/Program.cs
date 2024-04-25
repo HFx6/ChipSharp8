@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using Veldrid;
 using Veldrid.Sdl2;
@@ -19,9 +20,14 @@ namespace ChipSharp8
         private static KeyPad _keyPad;
         private static Vector3 _clearColor = new Vector3(0.45f, 0.55f, 0.6f);
         private static string[] fileArray = Directory.GetFiles(@"./roms/", "*.ch8");
+        private static Texture texture;
 
         private static bool isPaused = false;
-        private static string selectedRom = fileArray[0];
+        private static string selectedRom = @"./roms/si.ch8";
+
+        private static Vector3 BgColor = new Vector3(0, 0, 0);
+        private static Vector3 FgColor = new Vector3(1, 1, 1);
+
 
         static void Main(string[] args)
         {
@@ -44,8 +50,6 @@ namespace ChipSharp8
             float deltaTime = 0f;
             _chip = Chip.BootChip(selectedRom);
             _keyPad = new KeyPad(_chip);
-            // loop through all the files in the roms folder
-
 
             while (_window.Exists)
             {
@@ -76,51 +80,71 @@ namespace ChipSharp8
             _gd.Dispose();
         }
 
+        private static RgbaByte ConvertToRgbaByte(System.Numerics.Vector3 color)
+        {
+            return new RgbaByte(
+                (byte)(Math.Clamp(color.X, 0.0f, 1.0f) * 255),
+                (byte)(Math.Clamp(color.Y, 0.0f, 1.0f) * 255),
+                (byte)(Math.Clamp(color.Z, 0.0f, 1.0f) * 255),
+                255 
+            );
+        }
+
         private static unsafe void ChipDisplay()
         {
-
             {
+                ImGui.Begin("Background");
+                ImGui.ColorPicker3("ColorPicker3", ref BgColor);
+                ImGui.End();
+            }
+            {
+                ImGui.Begin("Foreground");
+                ImGui.ColorPicker3("ColorPicker3", ref FgColor);
+                ImGui.End();
+            }
+            {
+                Console.WriteLine(BgColor);
                 RgbaByte[] RGBAdata = new RgbaByte[64 * 32];
+
+                RgbaByte bgColorRgba = ConvertToRgbaByte(BgColor);
+                RgbaByte fgColorRgba = ConvertToRgbaByte(FgColor);
                 for (int i = 0; i < RGBAdata.Length; ++i)
+                {
                     if (_chip.gfx[i] == 0)
                     {
-                        RGBAdata[i] = new RgbaByte((byte)0, 0, 0, 0);
+                        RGBAdata[i] = bgColorRgba;
                     }
                     else
                     {
-                        RGBAdata[i] = new RgbaByte((byte)255, 255, 255, 255);
-
+                        RGBAdata[i] = fgColorRgba;
                     }
+                }
 
-
-                Texture texture = _gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
-                    64, 32, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
-
+                texture = _gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
+                                64, 32, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
 
                 _gd.UpdateTexture(texture, RGBAdata, 0, 0, 0, 64, 32, 1, 0, 0);
 
                 ImGui.Begin("Chip-8");
-
 
                 nint ImgPtr = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, texture);
                 ImGui.Image(ImgPtr, new System.Numerics.Vector2(640, 320));
 
                 ImGui.End();
 
+
             }
             {
                 ImGui.Begin("Controls");
-                // reset the chip
                 if (ImGui.Button("Reset"))
                 {
-                    _chip.Reset();
+                    _chip.Reset(selectedRom);
+                    _keyPad = new KeyPad(_chip);
                 }
-                // play/pause the emulation cycle
                 if (ImGui.Button(isPaused ? "Play" : "Pause"))
                 {
                     isPaused = !isPaused;
                 }
-                // select a rom from the roms folder dropdown with button to load
                 if (ImGui.BeginCombo("Select ROM", selectedRom))
                 {
                     foreach (var file in fileArray)
@@ -143,7 +167,7 @@ namespace ChipSharp8
             {
                 ImGui.Begin("Registers");
 
-                ImGui.Columns(2, "mycolumns"); // 2-ways, with border
+                ImGui.Columns(2, "mycolumns");
                 ImGui.Separator();
                 ImGui.Text("Register"); ImGui.NextColumn();
                 ImGui.Text("Value"); ImGui.NextColumn();
