@@ -28,6 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="imgui.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="roms\ibm_logo.ch8">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

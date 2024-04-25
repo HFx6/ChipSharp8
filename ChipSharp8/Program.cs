@@ -32,7 +32,7 @@ namespace ChipSharp8
         static void Main(string[] args)
         {
             VeldridStartup.CreateWindowAndGraphicsDevice(
-                new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "Chip#8"),
+                new WindowCreateInfo(50, 50, 1117, 662, WindowState.Normal, "Chip#8"),
                 new GraphicsDeviceOptions(true, null, true, ResourceBindingModel.Improved, true, true),
                 out _window,
                 out _gd);
@@ -102,8 +102,6 @@ namespace ChipSharp8
             ImGui.ColorPicker3("ColorPicker3", ref FgColor);
             ImGui.End();
 
-
-            Console.WriteLine(BgColor);
             RgbaByte[] RGBAdata = new RgbaByte[64 * 32];
 
             RgbaByte bgColorRgba = ConvertToRgbaByte(BgColor);

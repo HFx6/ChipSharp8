@@ -25,7 +25,7 @@ namespace ChipSharp8
             float columnWidth = ImGui.GetColumnWidth();
             for (int i = 0; i < keys.Length; i++)
             {
-                ImGui.Button(keys[i], new Vector2(columnWidth, 0));
+                ImGui.Button(keys[i], new Vector2(columnWidth, 45));
                 if (ImGui.IsItemActive())
                 {
                     _isKeyPadPressed = true;
