@@ -20,10 +20,14 @@ namespace ChipSharp8
         private static Chip _chip;
         private static KeyPad _keyPad;
         private static Vector3 _clearColor = new Vector3(0.45f, 0.55f, 0.6f);
+
+        // Roms must be stored in the root of the project in a folder called "roms"
         private static string[] fileArray = Directory.GetFiles(@"./roms/", "*.ch8");
         private static Texture texture;
 
         private static bool isPaused = false;
+
+        // Default rom to load is space invaders
         private static string selectedRom = @"./roms/si.ch8";
 
         private static Vector3 BgColor = new Vector3(0, 0, 0);
