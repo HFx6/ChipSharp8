@@ -5,11 +5,16 @@ namespace ChipSharp8
 {
     internal class KeyPad
     {
+        // The Chip object
         Chip _chip;
+        // Flag to check if a key is pressed. This is used to check if a key is released
         bool _isKeyPadPressed = false;
+        // The keys on the keypad
         string[] keys = ["1", "2", "3", "C", "4", "5", "6", "D", "7", "8", "9", "E", "A", "0", "B", "F"];
+        // The key values
         int[] keyValues = [0x1, 0x2, 0x3, 0xC, 0x4, 0x5, 0x6, 0xD, 0x7, 0x8, 0x9, 0xE, 0xA, 0x0, 0xB, 0xF];
 
+        // Constructor to initialize the Chip object
         public KeyPad(Chip chip)
         {
             _chip = chip;
@@ -17,24 +22,23 @@ namespace ChipSharp8
 
         public void Render()
         {
-
-
             ImGui.Begin("Keypad");
             ImGui.Columns(4, "mycolumns");
             ImGui.Separator();
+            // Get the column width, so that the buttons can be of the same size (full width)
             float columnWidth = ImGui.GetColumnWidth();
             for (int i = 0; i < keys.Length; i++)
             {
                 ImGui.Button(keys[i], new Vector2(columnWidth, 45));
                 if (ImGui.IsItemActive())
                 {
+                    // Set the flag to true if a key is pressed and call KeyDown
                     _isKeyPadPressed = true;
-                    Console.WriteLine($"Key {keys[i]} pressed");
                     _chip.KeyDown((byte)keyValues[i]);
                 }
+                // In case the key is pressed and the mouse is released, set the flag to false and call KeyUp
                 else if (_isKeyPadPressed && ImGui.IsItemHovered() && ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                 {
-                    Console.WriteLine($"Key {keys[i]} released");
                     _chip.KeyUp((byte)keyValues[i]);
                     _isKeyPadPressed = false;
                 }
@@ -51,6 +55,7 @@ namespace ChipSharp8
             ImGui.End();
 
             {
+                // There must be a better way to do this ;-;
                 if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey._0)))
                 {
                     _chip.KeyDown(0x0);

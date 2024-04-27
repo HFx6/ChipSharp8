@@ -14,6 +14,7 @@ namespace ChipSharp8
         private static Sdl2Window _window;
         private static GraphicsDevice _gd;
         private static CommandList _cl;
+        // Default controller from the repo
         private static ImGuiController _controller;
 
         private static Chip _chip;
@@ -43,8 +44,6 @@ namespace ChipSharp8
             };
             _cl = _gd.ResourceFactory.CreateCommandList();
             _controller = new ImGuiController(_gd, _gd.MainSwapchain.Framebuffer.OutputDescription, _window.Width, _window.Height);
-
-            Random random = new Random();
 
             var stopwatch = Stopwatch.StartNew();
             float deltaTime = 0f;
@@ -102,6 +101,7 @@ namespace ChipSharp8
             ImGui.ColorPicker3("ColorPicker3", ref FgColor);
             ImGui.End();
 
+            // Reset the texture as the docs require a perfect render based on the Chip data
             RgbaByte[] RGBAdata = new RgbaByte[64 * 32];
 
             RgbaByte bgColorRgba = ConvertToRgbaByte(BgColor);
@@ -118,13 +118,15 @@ namespace ChipSharp8
                 }
             }
 
+
+            // Our display is 64*32 for the original Chip-8
             texture = _gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
                             64, 32, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
-
             _gd.UpdateTexture(texture, RGBAdata, 0, 0, 0, 64, 32, 1, 0, 0);
 
             ImGui.Begin("Chip-8");
 
+            // ImGui.Image requires a pointer to the texture. ImGui.Net might have a better way to do this
             nint ImgPtr = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, texture);
             ImGui.Image(ImgPtr, new System.Numerics.Vector2(640, 320));
 
@@ -137,6 +139,7 @@ namespace ChipSharp8
             if (ImGui.Button("Reset"))
             {
                 _chip.Reset(selectedRom);
+                // TODO: Reset the keypad properly. There is a bug here where the keypad is not reset properly after rom change
                 _keyPad = new KeyPad(_chip);
             }
             if (ImGui.Button(isPaused ? "Play" : "Pause"))
@@ -155,6 +158,7 @@ namespace ChipSharp8
                     }
                     if (isSelected)
                     {
+                        // From the ImGui.Net docs
                         ImGui.SetItemDefaultFocus();
                     }
                 }
@@ -171,6 +175,7 @@ namespace ChipSharp8
             ImGui.Text("Value"); ImGui.NextColumn();
             ImGui.Separator();
 
+            // Edited from the docs example this part as my original code was not working
             var registers = new List<(string, string)>
                     {
                         ("PC", $"0x{_chip.pc:X4}"),

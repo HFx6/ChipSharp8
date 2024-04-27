@@ -1,25 +1,38 @@
 
+using System.Net;
+
 namespace ChipSharp8
 {
     public class Chip
     {
-
+        // 35 opcodes
         public ushort opcode { get; set; }
+        // 4kb memory
         public byte[] memory { get; set; }
+        // 16 8-bit registers
         public byte[] V { get; set; }
+        // Index register
         public ushort I { get; set; }
+        // Program counter
         public ushort pc { get; set; }
+        // 32 * 64 display
         public byte[] gfx { get; set; }
+        // 8-bit delay timer
         public byte delay_timer { get; set; }
+        // 8-bit sound timer
         public byte sound_timer { get; set; }
-
+        // 16-bit stack
         public ushort[] stack { get; set; }
+        // 16-bit stack pointer
         public ushort sp { get; set; }
 
-
+        // 16 key inputs
         private bool[] Keys;
+
+        // Timer counter
         private uint Counter;
 
+        // Start of the ROM position expected in memory
         const ushort RomStart = 0x200;
 
         private byte[] fonts = {
@@ -44,7 +57,6 @@ namespace ChipSharp8
 
         public static Chip BootChip(byte[] rom)
         {
-            Console.WriteLine(rom);
             Chip chip = new Chip
             {
                 opcode = 0,
@@ -71,10 +83,10 @@ namespace ChipSharp8
         public static Chip BootChip(string rom)
         {
             var bytes = readRomFile(rom);
-            Console.WriteLine(rom);
             return BootChip(bytes);
         }
 
+        // Load the fontset into memory
         public void LoadFont()
         {
             for (int i = 0; i < 80; i++)
@@ -135,17 +147,25 @@ namespace ChipSharp8
 
         public void EmulateCycle()
         {
+            // Opcode is 2 bytes long
             opcode = (ushort)(memory[pc] << 8 | memory[pc + 1]);
             pc += 2;
 
+            //  X: The second nibble.Used to look up one of the 16 registers(VX) from V0 through VF.
+            //  Y: The third nibble.Also used to look up one of the 16 registers(VY) from V0 through VF.
+            //  N: The fourth nibble.A 4 - bit number.
+            //  NN: The second byte(third and fourth nibbles).An 8 - bit immediate number.
+            //  NNN: The second, third and fourth nibbles.A 12 - bit immediate memory address.
             ushort NNN = (ushort)(opcode & 0x0FFF);
             byte NN = (byte)(opcode & 0x00FF);
             byte N = (byte)(opcode & 0x000F);
             byte X = (byte)((opcode & 0x0F00) >> 8);
             byte Y = (byte)((opcode & 0x00F0) >> 4);
 
+            // We only need to check the first 4 bits of the opcode
             switch (opcode & 0xF000)
             {
+                // We also need to check the last 4 bits of the opcode to determine the instruction type
                 case 0x0000 when opcode == 0x00E0:
                     OP_00E0();
                     break;
@@ -273,26 +293,35 @@ namespace ChipSharp8
             }
         }
 
+        // Clear the screen
         public void OP_00E0()
         {
             gfx = new byte[64 * 32];
         }
+
+        // Jump to address NNN
         public void OP_1NNN(ushort NNN)
         {
             pc = NNN;
         }
+
+        // Return from a subroutine
         public void OP_00EE()
         {
             pc = stack[sp];
             sp--;
 
         }
+
+        // Call subroutine at NNN
         public void OP_2NNN(ushort NNN)
         {
             sp++;
             stack[sp] = pc;
             pc = NNN;
         }
+
+        // Skip next instruction if V[X] == NN
         public void OP_3XNN(ushort NN, ushort X)
         {
             if (V[X] == NN)
@@ -300,6 +329,8 @@ namespace ChipSharp8
                 pc += 2;
             }
         }
+
+        // Skip next instruction if V[X] != NN
         public void OP_4XNN(ushort NN, ushort X)
         {
             if (V[X] != NN)
@@ -307,6 +338,8 @@ namespace ChipSharp8
                 pc += 2;
             }
         }
+
+        // Skip next instruction if V[X] == V[Y]
         public void OP_5XY0(ushort X, ushort Y)
         {
             if (V[X] == V[Y])
@@ -314,6 +347,8 @@ namespace ChipSharp8
                 pc += 2;
             }
         }
+
+        // Skip next instruction if V[X] != V[Y]
         public void OP_9XY0(ushort X, ushort Y)
         {
             if (V[X] != V[Y])
@@ -321,30 +356,48 @@ namespace ChipSharp8
                 pc += 2;
             }
         }
+
+        // Set V[X] to NN
         public void OP_6XNN(ushort NN, ushort X)
         {
             V[X] = (byte)NN;
         }
+
+        // Add NN to V[X]
         public void OP_7XNN(byte NN, byte X)
         {
             V[X] += NN;
         }
+
+        //
+        // Logical and arithmetic instructions
+        //
+
+        // Set V[X] to V[Y]
         public void OP_8XY0(ushort X, ushort Y)
         {
             V[X] = V[Y];
         }
+
+        // Set V[X] to V[X] | V[Y]
         public void OP_8XY1(ushort X, ushort Y)
         {
             V[X] = (byte)(V[X] | V[Y]);
         }
+
+        // Set V[X] to V[X] & V[Y]
         public void OP_8XY2(ushort X, ushort Y)
         {
             V[X] = (byte)(V[X] & V[Y]);
         }
+
+        // Set V[X] to V[X] ^ V[Y]
         public void OP_8XY3(ushort X, ushort Y)
         {
             V[X] = (byte)(V[X] ^ V[Y]);
         }
+
+        // Add V[Y] to V[X]
         public void OP_8XY4(ushort X, ushort Y)
         {
             V[X] = (byte)(V[X] + V[Y]);
@@ -353,6 +406,8 @@ namespace ChipSharp8
                 V[0xF] = 1;
             }
         }
+
+        // Subtract V[Y] from V[X]
         public void OP_8XY5(ushort X, ushort Y)
         {
             if (V[Y] > V[X])
@@ -361,6 +416,8 @@ namespace ChipSharp8
                 V[0xF] = 1;
             V[X] = (byte)(V[X] - V[Y]);
         }
+
+        // Subtract V[X] from V[Y]
         public void OP_8XY7(ushort X, ushort Y)
         {
             if (V[X] > V[Y])
@@ -369,28 +426,40 @@ namespace ChipSharp8
                 V[0xF] = 1;
             V[X] = (byte)(V[Y] - V[X]);
         }
+
+        // Shift V[X] to the right by 1 and set V[F] to the least significant bit of V[X]
         public void OP_8XY6(ushort X, ushort Y)
         {
             V[0xF] = (byte)(V[X] & 0x1);
             V[X] >>= 0x1;
         }
+
+        // Shift V[X] to the left by 1 and set V[F] to the most significant bit of V[X]
         public void OP_8XYE(ushort X, ushort Y)
         {
             V[0xF] = (byte)((V[X] & 0x80) >> 7);
             V[X] <<= 0x1;
         }
+
+        // Set Index
         public void OP_ANNN(ushort NNN)
         {
             I = NNN;
         }
+
+        // Jump to offset
         public void OP_BNNN(ushort NNN)
         {
             pc = (ushort)(NNN + V[0]);
         }
+
+        // Random number
         public void OP_CXNN(ushort X, ushort NN)
         {
             V[X] = (byte)(new Random().Next(0, 255) & NN);
         }
+
+        // Display n-byte sprite starting at memory location I at (V[X], V[Y]), set V[F] = collision
         private void OP_DXYN(byte X, byte Y, byte N)
         {
             V[0xF] = 0;
@@ -418,6 +487,8 @@ namespace ChipSharp8
                 }
             }
         }
+
+        // Skip next instruction if key with the value of V[X] is pressed
         private void OP_EX9E(byte X)
         {
             if (Keys[V[X]])
@@ -425,6 +496,8 @@ namespace ChipSharp8
                 pc += 2;
             }
         }
+
+        // Skip next instruction if key with the value of V[X] is not pressed
         private void OP_EXA1(byte X)
         {
             if (!Keys[V[X]])
@@ -432,22 +505,32 @@ namespace ChipSharp8
                 pc += 2;
             }
         }
+
+        // Set V[X] to the value of the delay timer
         private void OP_FX07(byte X)
         {
             V[X] = delay_timer;
         }
+
+        // Set the delay timer to V[X]
         private void OP_FX15(byte X)
         {
             delay_timer = V[X];
         }
+
+        // Set the sound timer to V[X]
         private void OP_FX18(byte X)
         {
             sound_timer = V[X];
         }
+
+        // Add V[X] to I
         private void OP_FX1E(byte X)
         {
             I += V[X];
         }
+
+        // Wait for a key press and store the result in V[X]
         private void OP_FX0A(byte X)
         {
             while (true)
@@ -462,10 +545,14 @@ namespace ChipSharp8
                 }
             }
         }
+
+        // Set I to the location of the sprite for the character in V[X]
         private void OP_FX29(byte X)
         {
             I = (byte)(V[X] * 5);
         }
+
+        // Binary-coded decimal representation of V[X] at I, I+1, I+2 (modulo 10)
         private void OP_FX33(byte X)
         {
             byte value = V[X];
@@ -473,6 +560,8 @@ namespace ChipSharp8
             memory[I + 1] = (byte)((value / 10) % 10);
             memory[I + 2] = (byte)((value % 100) % 10);
         }
+
+        // Store V[0] to V[X] in memory starting at I
         private void OP_FX55(byte X)
         {
             for (int i = 0; i <= X; i++)
@@ -480,6 +569,8 @@ namespace ChipSharp8
                 memory[I + i] = V[i];
             }
         }
+
+        // Read V[0] to V[X] from memory starting at I
         private void OP_FX65(byte X)
         {
             for (int i = 0; i <= X; i++)
