@@ -1,3 +1,3 @@
 # ChipSharp8
 
-![image](https://github.com/HFx6/ChipSharp8/assets/43940641/22bc8d70-e112-46ec-aeac-e80fc340fe72)
+![image](https://github.com/HFx6/ChipSharp8/assets/43940641/167f767a-a4e9-484c-9164-693d610b966b)
